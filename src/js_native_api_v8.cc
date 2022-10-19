@@ -2,10 +2,8 @@
 #include <cmath>
 #include <algorithm>
 #define NAPI_EXPERIMENTAL
-#include "env-inl.h"
 #include "js_native_api_v8.h"
 #include "js_native_api.h"
-#include "util-inl.h"
 
 #define CHECK_MAYBE_NOTHING(env, maybe, status) \
   RETURN_STATUS_IF_FALSE((env), !((maybe).IsNothing()), (status))
@@ -357,8 +355,7 @@ inline static napi_status Unwrap(napi_env env,
   RETURN_STATUS_IF_FALSE(env, value->IsObject(), napi_invalid_arg);
   v8::Local<v8::Object> obj = value.As<v8::Object>();
 
-  auto val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-      .ToLocalChecked();
+  auto val = obj->GetInternalField(0);
   RETURN_STATUS_IF_FALSE(env, val->IsExternal(), napi_invalid_arg);
   Reference* reference =
       static_cast<v8impl::Reference*>(val.As<v8::External>()->Value());
@@ -368,8 +365,7 @@ inline static napi_status Unwrap(napi_env env,
   }
 
   if (action == RemoveWrap) {
-    CHECK(obj->DeletePrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-        .FromJust());
+    obj->SetInternalField(0, v8::Undefined(env->isolate));
     Reference::Delete(reference);
   }
 
@@ -614,8 +610,7 @@ inline napi_status Wrap(napi_env env,
   if (wrap_type == retrievable) {
     // If we've already wrapped this object, we error out.
     RETURN_STATUS_IF_FALSE(env,
-        !obj->HasPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-            .FromJust(),
+        obj->GetInternalField(0)->IsUndefined(),
         napi_invalid_arg);
   } else if (wrap_type == anonymous) {
     // If no finalize callback is provided, we error out.
@@ -639,8 +634,7 @@ inline napi_status Wrap(napi_env env,
   }
 
   if (wrap_type == retrievable) {
-    CHECK(obj->SetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper),
-          v8::External::New(env->isolate, reference)).FromJust());
+    obj->SetInternalField(0, v8::External::New(env->isolate, reference));
   }
 
   return GET_RETURN_STATUS(env);
@@ -674,6 +668,8 @@ const char* error_messages[] = {nullptr,
                                 "An arraybuffer was expected",
                                 "A detachable arraybuffer was expected",
 };
+
+NAPI_EXTERN void napi_module_register(napi_module* mod) {}
 
 napi_status napi_get_last_error_info(napi_env env,
                                      const napi_extended_error_info** result) {
@@ -764,6 +760,8 @@ napi_status napi_define_class(napi_env env,
 
   v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
       isolate, v8impl::FunctionCallbackWrapper::Invoke, cbdata);
+
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
   v8::Local<v8::String> name_string;
   CHECK_NEW_FROM_UTF8_LEN(env, name_string, utf8name, length);

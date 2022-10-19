@@ -13,18 +13,12 @@
 // are bridged to remove references to the `node` namespace. `node_version.h`,
 // included below, defines `NAPI_VERSION`.
 
-#include "node_version.h"
-#include "env.h"
-#include "node_internals.h"
+#include <v8.h>
+#include <cassert>
 
 #define NAPI_ARRAYSIZE(array) \
-  node::arraysize((array))
+  (sizeof(array) / sizeof(array[0]))
 
-#define NAPI_FIXED_ONE_BYTE_STRING(isolate, string) \
-  node::FIXED_ONE_BYTE_STRING((isolate), (string))
-
-#define NAPI_PRIVATE_KEY(context, suffix) \
-  (node::Environment::GetCurrent((context))->napi_ ## suffix())
 
 namespace v8impl {
 
@@ -68,10 +62,30 @@ class RefTracker {
 };
 
 template <typename T>
-using Persistent = v8::Global<T>;
+using Persistent = v8::Persistent<T>;
 
-using PersistentToLocal = node::PersistentToLocal;
+class PersistentToLocal {
+public:
+    template <class TypeName>
+    static inline v8::Local<TypeName> Strong(
+        const Persistent<TypeName>& persistent) {
+        return *reinterpret_cast<v8::Local<TypeName>*>(
+            const_cast<Persistent<TypeName>*>(&persistent));
+    }
+};
 
 }  // end of namespace v8impl
+
+#ifndef CHECK
+#define CHECK(expr) assert(expr)
+#endif
+
+#ifndef CHECK_EQ
+#define CHECK_EQ(a, b) CHECK((a) == (b))
+#endif
+
+#ifndef CHECK_LE
+#define CHECK_LE(a, b) CHECK((a) <= (b))
+#endif
 
 #endif  // SRC_JS_NATIVE_API_V8_INTERNALS_H_
