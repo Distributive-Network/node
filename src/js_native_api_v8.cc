@@ -669,7 +669,7 @@ const char* error_messages[] = {nullptr,
                                 "A detachable arraybuffer was expected",
 };
 
-NAPI_EXTERN void napi_module_register(napi_module* mod) {}
+NAPI_EXTERN void napi_module_register(void* mod) {}
 
 napi_status napi_get_last_error_info(napi_env env,
                                      const napi_extended_error_info** result) {
