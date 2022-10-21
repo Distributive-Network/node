@@ -18,7 +18,7 @@
 // functions available in a new version of N-API that is not yet ported in all
 // LTS versions, they can set NAPI_VERSION knowing that they have specifically
 // depended on that version.
-#define NAPI_VERSION 3
+#define NAPI_VERSION 5
 #endif
 #endif
 
