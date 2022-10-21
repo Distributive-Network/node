@@ -19,7 +19,6 @@
 #define NAPI_ARRAYSIZE(array) \
   (sizeof(array) / sizeof(array[0]))
 
-
 namespace v8impl {
 
 class RefTracker {
