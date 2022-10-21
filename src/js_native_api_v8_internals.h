@@ -64,13 +64,13 @@ template <typename T>
 using Persistent = v8::Persistent<T>;
 
 class PersistentToLocal {
-public:
-    template <class TypeName>
-    static inline v8::Local<TypeName> Strong(
-        const Persistent<TypeName>& persistent) {
-        return *reinterpret_cast<v8::Local<TypeName>*>(
-            const_cast<Persistent<TypeName>*>(&persistent));
-    }
+ public:
+  template <class TypeName>
+  static inline v8::Local<TypeName> Strong(
+      const Persistent<TypeName>& persistent) {
+    return *reinterpret_cast<v8::Local<TypeName>*>(
+      const_cast<Persistent<TypeName>*>(&persistent));
+  }
 };
 
 }  // end of namespace v8impl
