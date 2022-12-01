@@ -1289,10 +1289,11 @@ def configure_node(o):
 
   o['variables']['want_separate_host_toolset'] = int(cross_compiling)
 
-  # Enable branch protection for arm64
-  if target_arch == 'arm64':
-    o['cflags']+=['-msign-return-address=all']
-    o['variables']['arm_fpu'] = options.arm_fpu or 'neon'
+  # See: https://github.com/nodejs/node/issues/42888
+  # # Enable branch protection for arm64
+  # if target_arch == 'arm64':
+  #   o['cflags']+=['-msign-return-address=all']
+  #   o['variables']['arm_fpu'] = options.arm_fpu or 'neon'
 
   if options.node_snapshot_main is not None:
     if options.shared:
