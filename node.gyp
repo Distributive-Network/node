@@ -716,10 +716,6 @@
               ],
             }],
           ],
-          }, {
-          'sources': [
-            'src/node_snapshot_stub.cc'
-          ],
         }],
         [ 'OS in "linux freebsd" and '
           'target_arch=="x64"', {
@@ -892,6 +888,11 @@
             'LD_DYLIB_INSTALL_NAME':
               '@rpath/lib<(node_core_target_name).<(shlib_suffix)'
           },
+        }],
+        ['node_use_node_snapshot!="true"', {
+          'sources': [
+            'src/node_snapshot_stub.cc'
+          ]
         }],
         [ 'node_use_node_code_cache=="true"', {
           'defines': [
