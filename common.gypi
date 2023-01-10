@@ -468,7 +468,7 @@
         'ldflags': [ '-rdynamic' ],
         'target_conditions': [
           # The 1990s toolchain on SmartOS can't handle thin archives.
-          ['_type=="static_library" and OS=="solaris"', {
+          ['_type=="static_library"', {
             'standalone_static_library': 1,
           }],
           ['OS=="openbsd"', {
