@@ -1165,10 +1165,6 @@
               ],
             }],
           ],
-          }, {
-          'sources': [
-            'src/node_snapshot_stub.cc'
-          ],
         }],
         [ 'node_shared=="true"', {
           # Keep this whole-archive section in sync with the `node_exe` target above.
@@ -1753,6 +1749,11 @@
           'defines': [
             'HAVE_OPENSSL=1',
           ],
+        }],
+        ['node_use_node_snapshot!="true"', {
+          'sources': [
+            'src/node_snapshot_stub.cc'
+          ]
         }],
         [ 'node_use_node_code_cache=="true"', {
           'defines': [
