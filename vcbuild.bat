@@ -187,7 +187,7 @@ if "%target_env%"=="vs2022" set "node_gyp_exe=%node_gyp_exe% --msvs_version=2022
 if "%*"=="lint" if exist "%node_exe%" goto lint-cpp
 
 if "%config%"=="Debug"      set configure_flags=%configure_flags% --debug
-if defined nosnapshot       set configure_flags=%configure_flags% --without-snapshot
+if defined nosnapshot       set configure_flags=%configure_flags% --without-node-snapshot
 if defined nonpm            set configure_flags=%configure_flags% --without-npm
 if defined nocorepack       set configure_flags=%configure_flags% --without-corepack
 if defined noetw            set configure_flags=%configure_flags% --without-etw& set noetw_msi_arg=/p:NoETW=1
