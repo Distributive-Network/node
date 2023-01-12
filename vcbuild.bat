@@ -192,7 +192,7 @@ if "%*"=="lint" if exist "%node_exe%" goto lint-cpp
 if "%*"=="format-md" if exist "%node_exe%" goto format-md
 
 if "%config%"=="Debug"      set configure_flags=%configure_flags% --debug
-if defined nosnapshot       set configure_flags=%configure_flags% --without-snapshot
+if defined nosnapshot       set configure_flags=%configure_flags% --without-node-snapshot
 if defined nonpm            set configure_flags=%configure_flags% --without-npm
 if defined ltcg             set configure_flags=%configure_flags% --with-ltcg
 if defined release_urlbase  set configure_flags=%configure_flags% --release-urlbase=%release_urlbase%
