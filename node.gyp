@@ -1750,7 +1750,7 @@
             'HAVE_OPENSSL=1',
           ],
         }],
-        ['node_shared=="true"' or 'node_use_node_snapshot!="true"', {
+        [ 'node_shared=="true" or node_use_node_snapshot!="true"', {
           'sources': [
             'src/node_snapshot_stub.cc'
           ]
