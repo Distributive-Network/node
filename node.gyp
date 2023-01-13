@@ -917,7 +917,7 @@
         [ 'node_builtin_modules_path!=""', {
           'defines': [ 'NODE_BUILTIN_MODULES_PATH="<(node_builtin_modules_path)"' ]
         }],
-        [ 'node_shared=="true"', {
+        [ 'node_shared=="true"' or 'node_use_node_snapshot!="true"', {
           'sources': [
             'src/node_snapshot_stub.cc',
           ]
@@ -934,11 +934,6 @@
             'LD_DYLIB_INSTALL_NAME':
               '@rpath/lib<(node_core_target_name).<(shlib_suffix)'
           },
-        }],
-        ['node_use_node_snapshot!="true"', {
-          'sources': [
-            'src/node_snapshot_stub.cc'
-          ]
         }],
         [ 'node_use_node_code_cache=="true"', {
           'defines': [
