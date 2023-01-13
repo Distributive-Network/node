@@ -877,7 +877,7 @@
         [ 'node_builtin_modules_path!=""', {
           'defines': [ 'NODE_BUILTIN_MODULES_PATH="<(node_builtin_modules_path)"' ]
         }],
-        [ 'node_shared=="true"' or 'node_use_node_snapshot!="true"', {
+        [ 'node_shared=="true" or node_use_node_snapshot!="true"', {
           'sources': [
             'src/node_snapshot_stub.cc',
           ]
