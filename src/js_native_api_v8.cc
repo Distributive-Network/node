@@ -1,10 +1,6 @@
 #include <algorithm>
 #include <climits>  // INT_MAX
 #include <cmath>
-#ifndef NAPI_EXPERIMENTAL
-#define NAPI_EXPERIMENTAL
-#endif
-#include "env-inl.h"
 #include "js_native_api.h"
 #include "js_native_api_v8.h"
 #include "util-inl.h"
