@@ -1043,7 +1043,7 @@ napi_define_class(napi_env env,
       env, constructor, callback_data, &tpl));
 
 #if 1
-  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tpl->InstanceTemplate()->SetInternalFieldCount(2);
 #endif
 
   v8::Local<v8::String> name_string;
@@ -2698,20 +2698,26 @@ napi_status NAPI_CDECL napi_type_tag_object(napi_env env,
   CHECK_TO_OBJECT_WITH_PREAMBLE(env, context, obj, object_or_external);
   CHECK_ARG_WITH_PREAMBLE(env, type_tag);
 
+#if 0
   auto key = NAPI_PRIVATE_KEY(context, type_tag);
   auto maybe_has = obj->HasPrivate(context, key);
   CHECK_MAYBE_NOTHING_WITH_PREAMBLE(env, maybe_has, napi_generic_failure);
   RETURN_STATUS_IF_FALSE_WITH_PREAMBLE(
       env, !maybe_has.FromJust(), napi_invalid_arg);
+#endif
 
   auto tag = v8::BigInt::NewFromWords(
       context, 0, 2, reinterpret_cast<const uint64_t*>(type_tag));
   CHECK_MAYBE_EMPTY_WITH_PREAMBLE(env, tag, napi_generic_failure);
 
+#if 1
+  obj->SetInternalField(1, tag.ToLocalChecked());
+#else
   auto maybe_set = obj->SetPrivate(context, key, tag.ToLocalChecked());
   CHECK_MAYBE_NOTHING_WITH_PREAMBLE(env, maybe_set, napi_generic_failure);
   RETURN_STATUS_IF_FALSE_WITH_PREAMBLE(
       env, maybe_set.FromJust(), napi_generic_failure);
+#endif
 
   return GET_RETURN_STATUS(env);
 }
@@ -2738,10 +2744,14 @@ napi_status NAPI_CDECL napi_check_object_type_tag(napi_env env,
   CHECK_ARG_WITH_PREAMBLE(env, type_tag);
   CHECK_ARG_WITH_PREAMBLE(env, result);
 
+#if 1
+  v8::Local<v8::Value> val = obj->GetInternalField(1);
+#else
   auto maybe_value =
       obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, type_tag));
   CHECK_MAYBE_EMPTY_WITH_PREAMBLE(env, maybe_value, napi_generic_failure);
   v8::Local<v8::Value> val = maybe_value.ToLocalChecked();
+#endif
 
   // We consider the type check to have failed unless we reach the line below
   // where we set whether the type check succeeded or not based on the
