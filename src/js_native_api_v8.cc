@@ -234,14 +234,20 @@ inline napi_status Unwrap(napi_env env,
     CHECK_ARG(env, result);
   }
 
+#if 0
   v8::Local<v8::Context> context = env->context();
+#endif
 
   v8::Local<v8::Value> value = v8impl::V8LocalValueFromJsValue(js_object);
   RETURN_STATUS_IF_FALSE(env, value->IsObject(), napi_invalid_arg);
   v8::Local<v8::Object> obj = value.As<v8::Object>();
 
+#if 1
+  auto val = obj->GetInternalField(0);
+#else
   auto val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
                  .ToLocalChecked();
+#endif
   RETURN_STATUS_IF_FALSE(env, val->IsExternal(), napi_invalid_arg);
   Reference* reference =
       static_cast<v8impl::Reference*>(val.As<v8::External>()->Value());
@@ -251,8 +257,12 @@ inline napi_status Unwrap(napi_env env,
   }
 
   if (action == RemoveWrap) {
+#if 1
+    obj->SetInternalField(0, v8::Undefined(env->isolate));
+#else
     CHECK(obj->DeletePrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
               .FromJust());
+#endif
     Reference::Delete(reference);
   }
 
@@ -439,7 +449,9 @@ inline napi_status Wrap(napi_env env,
   NAPI_PREAMBLE(env);
   CHECK_ARG(env, js_object);
 
+#if 0
   v8::Local<v8::Context> context = env->context();
+#endif
 
   v8::Local<v8::Value> value = v8impl::V8LocalValueFromJsValue(js_object);
   RETURN_STATUS_IF_FALSE(env, value->IsObject(), napi_invalid_arg);
@@ -447,11 +459,16 @@ inline napi_status Wrap(napi_env env,
 
   if (wrap_type == retrievable) {
     // If we've already wrapped this object, we error out.
+#if 1
+    RETURN_STATUS_IF_FALSE(
+        env, obj->GetInternalField(0)->IsUndefined(), napi_invalid_arg);
+#else
     RETURN_STATUS_IF_FALSE(
         env,
         !obj->HasPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
              .FromJust(),
         napi_invalid_arg);
+#endif
   } else if (wrap_type == anonymous) {
     // If no finalize callback is provided, we error out.
     CHECK_ARG(env, finalize_cb);
@@ -480,10 +497,14 @@ inline napi_status Wrap(napi_env env,
   }
 
   if (wrap_type == retrievable) {
+#if 1
+    obj->SetInternalField(0, v8::External::New(env->isolate, reference));
+#else
     CHECK(obj->SetPrivate(context,
                           NAPI_PRIVATE_KEY(context, wrapper),
                           v8::External::New(env->isolate, reference))
               .FromJust());
+#endif
   }
 
   return GET_RETURN_STATUS(env);
@@ -859,6 +880,10 @@ napi_define_class(napi_env env,
   v8::Local<v8::FunctionTemplate> tpl;
   STATUS_CALL(v8impl::FunctionCallbackWrapper::NewTemplate(
       env, constructor, callback_data, &tpl));
+
+#if 1
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+#endif
 
   v8::Local<v8::String> name_string;
   CHECK_NEW_FROM_UTF8_LEN(env, name_string, utf8name, length);
