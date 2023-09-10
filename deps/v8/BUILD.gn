@@ -302,7 +302,7 @@ declare_args() {
   v8_enable_sandbox = ""
 
   # Enable external pointer sandboxing. Requires v8_enable_sandbox.
-  # Sets -DV8_SANDBOXED_EXTERNAL_POINRTERS.
+  # Sets -DV8_SANDBOXED_EXTERNAL_POINTERS.
   v8_enable_sandboxed_external_pointers = false
 
   # Enable sandboxed pointers. Requires v8_enable_sandbox.
