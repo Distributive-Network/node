@@ -36,7 +36,10 @@ using PersistentToLocal = node::PersistentToLocal;
 
 [[noreturn]] inline void OnFatalError(const char* location,
                                       const char* message) {
+#ifdef NAPI_EXPERIMENTAL
+// https://github.com/nodejs/node/pull/42651
   node::OnFatalError(location, message);
+#endif  // NAPI_EXPERIMENTAL
 }
 
 }  // end of namespace v8impl
