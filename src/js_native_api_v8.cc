@@ -3132,7 +3132,7 @@ napi_create_external_arraybuffer(napi_env env,
     v8impl::ArrayBufferReference::New(env,
         buffer,
         0,
-        true,
+        v8impl::Ownership::kRuntime,
         finalize_cb,
         external_data,
         finalize_hint);
