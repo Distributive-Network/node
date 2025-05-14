@@ -344,7 +344,8 @@ class ArrayBufferReference final : public Reference {
   explicit ArrayBufferReference(napi_env env,
                                 v8::Local<v8::ArrayBuffer> value,
                                 Args&&... args)
-    : Reference(env, value, std::forward<Args>(args)...) {}
+    : Reference(env, value, std::forward<Args>(args)...),
+      _env(env) {}
 
   template <typename... Args>
   static ArrayBufferReference* New(napi_env env,
@@ -354,18 +355,18 @@ class ArrayBufferReference final : public Reference {
   }
 
  private:
-  inline void Finalize(bool is_env_teardown) override {
-    if (is_env_teardown) {
-      v8::HandleScope handle_scope(_env->isolate);
-      v8::Local<v8::Value> obj = Get();
-      CHECK(!obj.IsEmpty());
-      CHECK(obj->IsArrayBuffer());
-      v8::Local<v8::ArrayBuffer> ab = obj.As<v8::ArrayBuffer>();
-      if (ab->IsDetachable())
-        ab->Detach();
-    }
+  napi_env _env;
 
-    Reference::Finalize(is_env_teardown);
+  inline void Finalize() override {
+    v8::HandleScope handle_scope(_env->isolate);
+    v8::Local<v8::Value> obj = Get();
+    CHECK(!obj.IsEmpty());
+    CHECK(obj->IsArrayBuffer());
+    v8::Local<v8::ArrayBuffer> ab = obj.As<v8::ArrayBuffer>();
+    if (ab->IsDetachable())
+      ab->Detach();
+
+    Reference::Finalize();
   }
 };
 #endif
