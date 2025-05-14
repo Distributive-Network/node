@@ -4,6 +4,8 @@
 #include "js_native_api_types.h"
 #include "js_native_api_v8_internals.h"
 
+#include <unordered_set>
+
 inline napi_status napi_clear_last_error(node_api_nogc_env env);
 
 namespace v8impl {
