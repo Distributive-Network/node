@@ -3119,7 +3119,12 @@ napi_create_external_arraybuffer(napi_env env,
                                        nullptr);
   v8::Local<v8::ArrayBuffer> buffer =
       v8::ArrayBuffer::New(isolate, std::move(backing));
-  v8::Maybe<bool> marked = env->mark_arraybuffer_as_untransferable(buffer);
+
+  // https://github.com/nodejs/node/pull/47557 removed the mark_arraybuffer_as_untransferable API
+  // do it manually instead
+  v8::Maybe<bool> marked = buffer->SetPrivate(env->context(),
+                                              env->node_env()->untransferable_object_private_symbol(),
+                                              v8::True(isolate));
   CHECK_MAYBE_NOTHING(env, marked, napi_generic_failure);
 
   if (finalize_cb != nullptr) {
