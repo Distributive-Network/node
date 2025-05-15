@@ -3133,7 +3133,7 @@ napi_create_external_arraybuffer(napi_env env,
         buffer,
         0,
         v8impl::Ownership::kRuntime,
-        finalize_cb,
+        reinterpret_cast<napi_finalize>(finalize_cb),
         external_data,
         finalize_hint);
   }
