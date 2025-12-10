@@ -387,10 +387,10 @@ inline napi_status Unwrap(napi_env env,
   v8::Local<v8::Object> obj = value.As<v8::Object>();
 
 #if 1
-  auto val = obj->GetInternalField(0);
+  v8::Local<v8::Value> val = obj->GetInternalField(0).As<v8::Value>();
 #else
-  auto val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-                 .ToLocalChecked();
+  v8::Local<v8::Value> val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
+                                 .ToLocalChecked();
 #endif
   RETURN_STATUS_IF_FALSE(env, val->IsExternal(), napi_invalid_arg);
   Reference* reference =
@@ -583,7 +583,7 @@ inline napi_status Wrap(napi_env env,
   // If we've already wrapped this object, we error out.
 #if 1
   RETURN_STATUS_IF_FALSE(
-      env, obj->GetInternalField(0)->IsUndefined(), napi_invalid_arg);
+      env, obj->GetInternalField(0).As<v8::Value>()->IsUndefined(), napi_invalid_arg);
 #else
   RETURN_STATUS_IF_FALSE(
       env,
@@ -2807,7 +2807,7 @@ napi_status NAPI_CDECL napi_check_object_type_tag(napi_env env,
   CHECK_ARG_WITH_PREAMBLE(env, result);
 
 #if 1
-  v8::Local<v8::Value> val = obj->GetInternalField(1);
+  v8::Local<v8::Value> val = obj->GetInternalField(1).As<v8::Value>();
 #else
   auto maybe_value =
       obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, type_tag));
