@@ -331,7 +331,7 @@ inline napi_status ConcludeDeferred(napi_env env,
 }
 
 #if 1
-class ArrayBufferReference final : public Reference {
+class ArrayBufferReference final : public ReferenceWithFinalizer {
  public:
   // Same signatures for ctor and New() as Reference, except this only works
   // with ArrayBuffers:
@@ -339,7 +339,7 @@ class ArrayBufferReference final : public Reference {
   explicit ArrayBufferReference(napi_env env,
                                 v8::Local<v8::ArrayBuffer> value,
                                 Args&&... args)
-    : Reference(env, value, std::forward<Args>(args)...),
+    : ReferenceWithFinalizer(env, value, std::forward<Args>(args)...),
       _env(env) {}
 
   template <typename... Args>
@@ -352,7 +352,7 @@ class ArrayBufferReference final : public Reference {
  private:
   napi_env _env;
 
-  inline void Finalize() override {
+  inline void CallUserFinalizer() override {
     v8::HandleScope handle_scope(_env->isolate);
     v8::Local<v8::Value> obj = Get(_env);
     CHECK(!obj.IsEmpty());
@@ -361,7 +361,7 @@ class ArrayBufferReference final : public Reference {
     if (ab->IsDetachable())
       ab->Detach();
 
-    Reference::Finalize();
+    ReferenceWithFinalizer::CallUserFinalizer();
   }
 };
 #endif
@@ -390,7 +390,7 @@ inline napi_status Unwrap(napi_env env,
   v8::Local<v8::Value> val = obj->GetInternalField(0).As<v8::Value>();
 #else
   v8::Local<v8::Value> val = obj->GetPrivate(context, NAPI_PRIVATE_KEY(context, wrapper))
-                                 .ToLocalChecked();
+                 .ToLocalChecked();
 #endif
   RETURN_STATUS_IF_FALSE(env, val->IsExternal(), napi_invalid_arg);
   Reference* reference =
