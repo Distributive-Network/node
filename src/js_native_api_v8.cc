@@ -354,7 +354,7 @@ class ArrayBufferReference final : public Reference {
 
   inline void Finalize() override {
     v8::HandleScope handle_scope(_env->isolate);
-    v8::Local<v8::Value> obj = Get();
+    v8::Local<v8::Value> obj = Get(_env);
     CHECK(!obj.IsEmpty());
     CHECK(obj->IsArrayBuffer());
     v8::Local<v8::ArrayBuffer> ab = obj.As<v8::ArrayBuffer>();
@@ -3198,7 +3198,7 @@ napi_create_external_arraybuffer(napi_env env,
     v8impl::ArrayBufferReference::New(env,
         buffer,
         0,
-        v8impl::Ownership::kRuntime,
+        v8impl::ReferenceOwnership::kRuntime,
         reinterpret_cast<napi_finalize>(finalize_cb),
         external_data,
         finalize_hint);
