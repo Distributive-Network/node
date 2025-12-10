@@ -417,11 +417,11 @@ class Reference : public RefTracker {
             ReferenceOwnership ownership);
   virtual void CallUserFinalizer() {}
   virtual void InvokeFinalizerFromGC();
-  void Finalize() override;
 
  private:
   static void WeakCallback(const v8::WeakCallbackInfo<Reference>& data);
   void SetWeak();
+  void Finalize() override;
 
  private:
   v8impl::Persistent<v8::Value> persistent_;
@@ -453,7 +453,7 @@ class ReferenceWithData final : public Reference {
 };
 
 // Reference that has a user finalizer callback.
-class ReferenceWithFinalizer final : public Reference {
+class ReferenceWithFinalizer : public Reference {
  public:
   static ReferenceWithFinalizer* New(napi_env env,
                                      v8::Local<v8::Value> value,
@@ -467,7 +467,7 @@ class ReferenceWithFinalizer final : public Reference {
   void ResetFinalizer() override { finalizer_.ResetFinalizer(); }
   void* Data() override { return finalizer_.data(); }
 
- private:
+ protected:
   ReferenceWithFinalizer(napi_env env,
                          v8::Local<v8::Value> value,
                          uint32_t initial_refcount,
