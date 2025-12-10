@@ -417,11 +417,11 @@ class Reference : public RefTracker {
             ReferenceOwnership ownership);
   virtual void CallUserFinalizer() {}
   virtual void InvokeFinalizerFromGC();
+  void Finalize() override;
 
  private:
   static void WeakCallback(const v8::WeakCallbackInfo<Reference>& data);
   void SetWeak();
-  void Finalize() override;
 
  private:
   v8impl::Persistent<v8::Value> persistent_;
