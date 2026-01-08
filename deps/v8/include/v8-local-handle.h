@@ -425,7 +425,7 @@ class V8_TRIVIAL_ABI Local : public LocalBase<T>,
     // If we're going to perform the type check then we have to check
     // that the handle isn't empty before doing the checked cast.
     if (that.IsEmpty()) return Local<T>();
-    T::Cast(that.template value<S>());
+    // T::Cast(that.template value<S>());
 #endif
     return Local<T>(LocalBase<T>(that));
   }
