@@ -1977,6 +1977,9 @@
             }]
           ]
         }],
+        # ['OS=="android"', {
+        #   'sources': [ '<(android_ndk_path)/sources/android/cpufeatures/cpu-features.c' ],
+        # }],
       ],
       # -Wno-invalid-offsetof flag is not valid for C.
       # The flag is initially set in `toolchain.gypi` for all targets.
