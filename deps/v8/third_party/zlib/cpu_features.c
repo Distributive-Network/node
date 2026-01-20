@@ -106,11 +106,18 @@ void ZLIB_INTERNAL cpu_check_features(void)
 static void _cpu_check_features(void)
 {
 #if defined(ARMV8_OS_ANDROID) && defined(__aarch64__)
-    uint64_t features = android_getCpuFeatures();
+    // uint64_t features = android_getCpuFeatures();
+    /* 
+     * Crypto extensions (crc32/pmull) are a baseline feature in ARMv8.1-A, and
+     * RK3588 has Cortex-A76 (ARMv8.2-A) cores, which is new enough that these can be assumed without runtime detection.
+     * Also android_getCpuFeatures() is somehow not available in the build system.
+     */
+    uint64_t features = ANDROID_CPU_ARM64_FEATURE_CRC32 | ANDROID_CPU_ARM64_FEATURE_PMULL;
     arm_cpu_enable_crc32 = !!(features & ANDROID_CPU_ARM64_FEATURE_CRC32);
     arm_cpu_enable_pmull = !!(features & ANDROID_CPU_ARM64_FEATURE_PMULL);
 #elif defined(ARMV8_OS_ANDROID) /* aarch32 */
-    uint64_t features = android_getCpuFeatures();
+    // uint64_t features = android_getCpuFeatures();
+    uint64_t features = ANDROID_CPU_ARM_FEATURE_CRC32 | ANDROID_CPU_ARM_FEATURE_PMULL;
     arm_cpu_enable_crc32 = !!(features & ANDROID_CPU_ARM_FEATURE_CRC32);
     arm_cpu_enable_pmull = !!(features & ANDROID_CPU_ARM_FEATURE_PMULL);
 #elif defined(ARMV8_OS_LINUX) && defined(__aarch64__)

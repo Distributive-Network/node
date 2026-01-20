@@ -2422,6 +2422,9 @@
             }]
           ]
         }],
+        # ['OS=="android"', {
+        #   'sources': [ '<(android_ndk_path)/sources/android/cpufeatures/cpu-features.c' ],
+        # }],
       ],
       'direct_dependent_settings': {
         'include_dirs': [
