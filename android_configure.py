@@ -66,6 +66,14 @@ os.environ['PATH'] += os.pathsep + toolchain_path + "/bin"
 os.environ['CC'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" +  "clang"
 os.environ['CXX'] = toolchain_path + "/bin/" + TOOLCHAIN_PREFIX + android_sdk_version + "-" + "clang++"
 
+# As part of its own build process, Node.js makes some binaries that need to be executed along the way. 
+# Consequently, if you build those tools with a cross compiler for ARM and try to run them on the Intel machine they’re sitting on, the build fails at that point because of the architecture mismatch.
+# These env vars allow you to specify different compilers for the target and host architectures, in turn allowing the system to make the local executables runnable on the host machine. 
+# See https://chrislea.com/2018/08/20/cross-compiling-node-js-for-arm-on-ubuntu/
+os.environ['CC_host'] = "gcc"
+os.environ['CXX_host'] = "g++"
+os.environ['GYP_CROSSCOMPILE'] = "1"
+
 GYP_DEFINES = "target_arch=" + arch
 GYP_DEFINES += " v8_target_arch=" + arch
 GYP_DEFINES += " android_target_arch=" + arch
@@ -74,4 +82,4 @@ GYP_DEFINES += " android_ndk_path=" + android_ndk_path
 os.environ['GYP_DEFINES'] = GYP_DEFINES
 
 if os.path.exists("./configure"):
-    os.system("./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling")
+    os.system("./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling --without-intl --shared")
