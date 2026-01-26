@@ -37,6 +37,7 @@
 /*.exe
 /*.swp
 /out
+/out*
 /*.msi
 /*.wixpdb
 /*.qlog
