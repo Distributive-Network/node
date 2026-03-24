@@ -54,7 +54,15 @@ class OverrunGuardedBuffer {
 #ifdef USE_MPROTECT
     // Place the packet right before a guard page, which, when accessed, causes
     // a segmentation fault.
+  #if defined(__ANDROID__) && __ANDROID_API__ < 28
+    void* ptr = nullptr;
+    if (posix_memalign(&ptr, page, 2 * page) != 0) {
+      ptr = nullptr; // Handle allocation failure if necessary
+    }
+    alloc_base = static_cast<uint8_t*>(ptr);
+  #else
     alloc_base = static_cast<uint8_t*>(aligned_alloc(page, 2 * page));
+  #endif
     CHECK_NOT_NULL(alloc_base);
     uint8_t* second_page = alloc_base + page;
     CHECK_EQ(mprotect(second_page, page, PROT_NONE), 0);
