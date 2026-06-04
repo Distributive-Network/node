@@ -32,6 +32,25 @@
 # define SA_RESTART 0
 #endif
 
+/* DCP-4748: Android-only. On Android, ART claims SIGSEGV/SIGBUS/SIGFPE/etc. via
+ * libsigchain; libuv's usual reset-to-SIG_DFL on the last unwatch clobbers that
+ * handler and emits an ERROR-level libsigchain log on every embedded
+ * node::FreeEnvironment(). On Android we instead save the disposition that was
+ * in effect before libuv installed its handler and restore it on the last
+ * unwatch. This is deliberately gated to __ANDROID__: bionic round-trips the
+ * sigaction flags correctly (unlike macOS, which drops SA_RESETHAND -- see
+ * upstream libuv #4299 / reverted #4216), so no other platform's behaviour is
+ * touched. The table is indexed by signum and accessed only under the global
+ * signal lock.
+ */
+#ifdef __ANDROID__
+#ifndef NSIG
+# define NSIG 65
+#endif
+static struct sigaction uv__signal_saved_sa[NSIG];
+static unsigned char uv__signal_saved[NSIG];
+#endif
+
 typedef struct {
   uv_signal_t* handle;
   int signum;
@@ -221,9 +240,10 @@ static void uv__signal_handler(int signum) {
 }
 
 
-static int uv__signal_register_handler(int signum, int oneshot) {
+static int uv__signal_register_handler(int signum, int oneshot, int save) {
   /* When this function is called, the signal lock must be held. */
   struct sigaction sa;
+  struct sigaction* oldp;
 
   /* XXX use a separate signal stack? */
   memset(&sa, 0, sizeof(sa));
@@ -234,9 +254,28 @@ static int uv__signal_register_handler(int signum, int oneshot) {
   if (oneshot)
     sa.sa_flags |= SA_RESETHAND;
 
-  /* XXX save old action so we can restore it later on? */
-  if (sigaction(signum, &sa, NULL))
+  /* On Android, capture the previous disposition so uv__signal_unregister_handler()
+   * can restore it instead of resetting to SIG_DFL. `save` is set only on the
+   * transition from "no libuv handler" to "libuv handler installed" for this
+   * signum (see uv__signal_start); the oneshot re-registration paths pass
+   * save=0 so they never overwrite the captured disposition with libuv's own
+   * handler. Off Android this is a no-op and behaviour is unchanged.
+   */
+  oldp = NULL;
+#ifdef __ANDROID__
+  if (save && signum > 0 && signum < NSIG)
+    oldp = &uv__signal_saved_sa[signum];
+#else
+  (void) save;
+#endif
+
+  if (sigaction(signum, &sa, oldp))
     return UV__ERR(errno);
+
+#ifdef __ANDROID__
+  if (oldp != NULL)
+    uv__signal_saved[signum] = 1;
+#endif
 
   return 0;
 }
@@ -246,8 +285,23 @@ static void uv__signal_unregister_handler(int signum) {
   /* When this function is called, the signal lock must be held. */
   struct sigaction sa;
 
+  /* On Android, restore the disposition captured when uv__signal_register_handler()
+   * first installed our handler for this signum, if we have it; this avoids the
+   * libsigchain "Setting SIGxxx to SIG_DFL" report and clobbering ART's handler.
+   * Off Android, reset to SIG_DFL as upstream does.
+   */
+#ifdef __ANDROID__
+  if (signum > 0 && signum < NSIG && uv__signal_saved[signum]) {
+    sa = uv__signal_saved_sa[signum];
+    uv__signal_saved[signum] = 0;
+  } else {
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = SIG_DFL;
+  }
+#else
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = SIG_DFL;
+#endif
 
   /* sigaction can only fail with EINVAL or EFAULT; an attempt to deregister a
    * signal implies that it was successfully registered earlier, so EINVAL
@@ -413,7 +467,7 @@ static int uv__signal_start(uv_signal_t* handle,
   first_handle = uv__signal_first_handle(signum);
   if (first_handle == NULL ||
       (!oneshot && (first_handle->flags & UV_SIGNAL_ONE_SHOT))) {
-    err = uv__signal_register_handler(signum, oneshot);
+    err = uv__signal_register_handler(signum, oneshot, first_handle == NULL);
     if (err) {
       /* Registering the signal handler failed. Must be an invalid signal. */
       uv__signal_unlock_and_unblock(&saved_sigmask);
@@ -568,7 +622,7 @@ static void uv__signal_stop(uv_signal_t* handle) {
     rem_oneshot = handle->flags & UV_SIGNAL_ONE_SHOT;
     first_oneshot = first_handle->flags & UV_SIGNAL_ONE_SHOT;
     if (first_oneshot && !rem_oneshot) {
-      ret = uv__signal_register_handler(handle->signum, 1);
+      ret = uv__signal_register_handler(handle->signum, 1, 0);
       assert(ret == 0);
       (void)ret;
     }
