@@ -996,6 +996,11 @@
             'HAVE_DTLS=1',
           ],
         }],
+        [ 'node_shared=="true" or node_use_node_snapshot!="true"', {
+          'sources': [
+            'src/node_snapshot_stub.cc'
+          ]
+        }],
         [ 'use_openssl_def==1', {
           # TODO(bnoordhuis) Make all platforms export the same list of symbols.
           # Teach mkssldef.py to generate linker maps that UNIX linkers understand.
