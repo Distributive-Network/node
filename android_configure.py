@@ -18,8 +18,8 @@ if len(sys.argv) == 2 and sys.argv[1] == "patch":
     patch_android()
     sys.exit(0)
 
-if len(sys.argv) != 4:
-    print("Usage: ./android-configure [patch] <path to the Android NDK> <Android SDK version> <target architecture>")
+if len(sys.argv) < 4:
+    print("Usage: ./android-configure [patch] <path to the Android NDK> <Android SDK version> <target architecture> [extra build flags passing to ./configure]")
     sys.exit(1)
 
 if not os.path.exists(sys.argv[1]) or not os.listdir(sys.argv[1]):
@@ -33,6 +33,7 @@ if int(sys.argv[2]) < 24:
 android_ndk_path = sys.argv[1]
 android_sdk_version = sys.argv[2]
 arch = sys.argv[3]
+extra_flags = sys.argv[4:]
 
 if arch == "arm":
     DEST_CPU = "arm"
@@ -82,4 +83,6 @@ GYP_DEFINES += " android_ndk_path=" + android_ndk_path
 os.environ['GYP_DEFINES'] = GYP_DEFINES
 
 if os.path.exists("./configure"):
-    os.system("./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling --shared")
+    cmd = "./configure --dest-cpu=" + DEST_CPU + " --dest-os=android --openssl-no-asm --cross-compiling " + " ".join(extra_flags)
+    print("\033[92mInfo: \033[0m" + "Running command: " + cmd)
+    os.system(cmd)
