@@ -983,6 +983,11 @@
             '<@(node_quic_sources)',
           ],
         }],
+        [ 'node_shared=="true" or node_use_node_snapshot!="true"', {
+          'sources': [
+            'src/node_snapshot_stub.cc'
+          ]
+        }],
         [ 'OS in "linux freebsd mac solaris openharmony" and '
           'target_arch=="x64" and '
           'node_target_type=="executable"', {
