@@ -1115,6 +1115,7 @@
         # javascript files to make for an even more pleasant IDE experience
         '<@(library_files)',
         '<@(deps_files)',
+        'src/node_dummy.cc', # Temporary fix to https://github.com/nodejs/node/issues/65026
       ],
 
       'conditions': [
