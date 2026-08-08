@@ -1285,7 +1285,8 @@ DirectHandle<JSArrayBuffer> WasmMemoryObject::ChangeArrayBufferResizability(
 
 MaybeDirectHandle<WasmMemoryMapDescriptor>
 WasmMemoryMapDescriptor::NewFromAnonymous(Isolate* isolate, size_t length) {
-#if V8_TARGET_OS_LINUX
+#if V8_TARGET_OS_LINUX && defined(MFD_CLOEXEC)
+// memfd_create and MFD_CLOEXEC are available since glibc 2.27.
   CHECK(v8_flags.experimental_wasm_memory_control);
   DirectHandle<JSFunction> descriptor_ctor(
       isolate->native_context()->wasm_memory_map_descriptor_constructor(),
