@@ -20,6 +20,16 @@
 #include <string>
 #include <ostream>
 
+// glibc's sys/sysmacros.h defines major/minor as macros,
+// and the old glibc 2.17 sys/types.h pulls them in,
+// so we need to undef them here to avoid conflicts with the major/minor as member names below.
+#ifdef major
+#undef major
+#endif
+#ifdef minor
+#undef minor
+#endif
+
 namespace LIEF {
 namespace runtime {
 namespace windows {
