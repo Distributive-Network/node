@@ -472,6 +472,28 @@ bool WriteAllToFd(int fd, const char* data, size_t len) {
 }
 
 #if defined(__linux__)
+// Fallback syscall numbers for SYS_memfd_create. Old C library headers (e.g.
+// the glibc 2.17 sysroot used by the obggcc toolchain) predate Linux 3.17 and
+// do not define it, which breaks the build. The numbers are stable kernel ABI.
+//
+// This code was introduced by:
+// https://github.com/nodejs/node/commit/d0535b1041a3ad85218d49d26838996d4e24e888#diff-cea6643957d66774731d8224242d6e052f3da9198fbb1fa5afb7e91b896b4cc0
+//
+// Note: it is only reached when an addon is loaded from in-memory bytes
+// (DLOpenBinary / AddonImage::Materialize), which happens only for addons
+// served by the virtual file system. Unless the `--allow-fs-vfs` flag is on,
+// this code is never used at runtime.
+#ifndef SYS_memfd_create
+#if defined(__x86_64__)
+#define SYS_memfd_create 319
+#elif defined(__i386__)
+#define SYS_memfd_create 356
+#elif defined(__aarch64__) || defined(__riscv)
+#define SYS_memfd_create 279
+#elif defined(__arm__)
+#define SYS_memfd_create 385
+#endif
+#endif
 int NodeMemfdCreate(const char* name, unsigned int flags) {
   return static_cast<int>(syscall(SYS_memfd_create, name, flags));
 }
