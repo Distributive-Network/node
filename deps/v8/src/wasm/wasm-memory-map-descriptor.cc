@@ -74,7 +74,8 @@ v8::Local<v8::Object> WasmMemoryMapDescriptor::NewFromFileDescriptor(
 v8::MaybeLocal<v8::Object> WasmMemoryMapDescriptor::NewFromAnonymous(
     v8::Isolate* isolate, size_t length, v8::Local<v8::Object> wrapper) {
   CHECK(v8_flags.wasm_memory_control);
-#if V8_OS_LINUX && !V8_OS_ANDROID
+// memfd_create and MFD_CLOEXEC are available since glibc 2.27.
+#if V8_OS_LINUX && !V8_OS_ANDROID && defined(MFD_CLOEXEC)
   int fd = memfd_create("wasm_memory_map_descriptor", MFD_CLOEXEC);
   if (fd == -1) return {};
   if (ftruncate(fd, length) == -1) {
